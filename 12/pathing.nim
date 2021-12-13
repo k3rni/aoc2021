@@ -1,6 +1,5 @@
 import std/[os, sequtils, sugar, tables, strutils, sets, algorithm]
 
-
 let input_file = open(paramStr(1))
 
 # Representing a graph as a table of name -> other names
@@ -30,6 +29,14 @@ func small_cave(name: string): bool =
 
 func padding(size: int): string = repeat(" ", 2 * size) & "> "
 
+func cant_revisit(node: string, route: seq[string]): bool =
+  let counts = newCountTable(route.filterIt(small_cave(it)))
+  let twos = toSeq(counts.values).filterIt(it >= 2)
+  # The route may already include node *once*
+  # But it may not include other small caves more than once
+  counts[node] > 1 or len(twos) > 0
+
+
 # Closure iterators can recur https://github.com/nim-lang/Nim/issues/16876
 iterator path(graph: Graph, origin: string, destination: string, route: var seq[string], nest: int = 0): seq[string] {.closure.} =
   echo padding(nest) & "Route: " & $route
@@ -39,9 +46,15 @@ iterator path(graph: Graph, origin: string, destination: string, route: var seq[
     echo padding(nest) & "Found path!"
     yield route
 
+  # Cannot step out of end
+  if origin == "end":
+    return
+
   for node in outgoing:
     if node in route:
-      if small_cave(node):
+      if node == "start":
+        continue # Cannot return there
+      if small_cave(node) and cant_revisit(node, route): # The second condition is for Part 2
         echo padding(nest) & "Already visited: " & $node
         continue
       else:
