@@ -57,12 +57,16 @@ for i in 1..num_steps:
 func count_individual_letters(pair_counts: var CountTable[string]): CountTable[char] =
   var counts = initCountTable[char]()
   for key, value in pair_counts.pairs:
-    # counts.inc(key[0], value)
-    # Why is skipping key[0] correct? :thinking-face:
+    # Only count the last letter of each pair. Consider the initial state: NNCB, or in terms of pairs, NN, NC, CB.
+    # Counting the last letters gives use one of N, C, B, which is off-by-one: it misses the first N.
+    # This is because all the pairs overlap: each letter belongs to two pairs. Except the first and last in the whole string.
     counts.inc(key[1], value)
   counts
  
-let counts = count_individual_letters(pair_counts)
+var counts = count_individual_letters(pair_counts)
+# Correct for off-by-one
+counts.inc(initial_template[0], 1)
+
 let (top, bottom) = (largest(counts), smallest(counts))
 
 echo "Most common is " & $(top.key) & " with " & $(top.val) & " occurrences"
