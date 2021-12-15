@@ -29,10 +29,11 @@ dump initial_template
 dump expansion_map
 
 var code = initial_template
-dump code
+# dump code
 for i in 1..num_steps:
+  echo "Step " & $i
   code = expand(expansion_map, code)
-  dump code
+  # dump code
 
 let counts = newCountTable[char](code)
 let (top, bottom) = (largest(counts), smallest(counts))
